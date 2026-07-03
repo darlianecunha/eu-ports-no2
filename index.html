@@ -66,6 +66,15 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
 <div class="wrap">
 
   <div class="stat-row">
+    <div class="chip" style="flex:1 1 240px"><div class="l" style="margin:0 0 6px">What is NO₂?</div>
+      <div style="font-size:13px;line-height:1.5;color:#28414f">A gas released when fuel burns, in ship engines, vehicles and industry. It stays close to its source, so it maps <strong>where</strong> combustion happens.</div></div>
+    <div class="chip" style="flex:1 1 240px"><div class="l" style="margin:0 0 6px">What does the satellite measure?</div>
+      <div style="font-size:13px;line-height:1.5;color:#28414f">Sentinel-5P scans the whole planet daily and measures the NO₂ column below it. We use the official 2024 annual mean, cell by cell (~2 km).</div></div>
+    <div class="chip" style="flex:1 1 240px"><div class="l" style="margin:0 0 6px">What does "enhancement" mean?</div>
+      <div style="font-size:13px;line-height:1.5;color:#28414f">How much more NO₂ sits over the port (±15 km) than over its own region (60–120 km ring). +50% = half again as much as the regional norm.</div></div>
+  </div>
+
+  <div class="stat-row">
     <div class="chip"><div class="n" id="s-targets">–</div><div class="l">Ports and lanes analysed</div></div>
     <div class="chip"><div class="n" id="s-top">–</div><div class="l" id="s-top-l">Strongest enhancement</div></div>
     <div class="chip"><div class="n" id="s-lane">–</div><div class="l">Strait of Gibraltar vs background</div></div>
@@ -81,6 +90,23 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
     metropolitan areas, where city traffic and industry also contribute. Blue: open-sea shipping
     lanes, no city at all.</p>
     <div class="cwrap"><canvas id="c-enh"></canvas></div>
+  </div>
+
+  <div class="box">
+    <h3>What the groups tell us</h3>
+    <p class="hint">Average enhancement per setting, computed from the table below</p>
+    <div class="stat-row" style="margin:6px 0 4px">
+      <div class="chip"><div class="n" id="g-lane">–</div><div class="l">Shipping lanes (no city)</div></div>
+      <div class="chip"><div class="n" id="g-clean">–</div><div class="l">Ports away from cities</div></div>
+      <div class="chip"><div class="n" id="g-urban">–</div><div class="l">Metropolitan port regions</div></div>
+    </div>
+    <p class="hint" id="g-reading" style="margin:8px 0 0"></p>
+  </div>
+
+  <div class="box">
+    <h3>Absolute levels: port versus its own region</h3>
+    <p class="hint">Tropospheric NO₂ column, 10¹⁵ molecules/cm². The pair shows both the level and the local excess; Rotterdam has the highest absolute level, but sits in an already-polluted region.</p>
+    <div class="cwrap" style="height:560px"><canvas id="c-levels"></canvas></div>
   </div>
 
   <h2 class="section">Full results</h2>
@@ -101,8 +127,8 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
 
 <footer>
   <div class="wrap">
-    <span>Analysis: <strong>Darliane Ribeiro Cunha, PhD</strong></span>
-    <span>Data: Copernicus Sentinel-5P (ESA), S5P-PAL L3 · contains modified Copernicus data 2024</span>
+    <span>Developed by <strong>Darliane Cunha, PhD</strong></span>
+    <span>Data source: Copernicus Sentinel-5P (ESA), S5P-PAL L3 · contains modified Copernicus data 2024</span>
   </div>
 </footer>
 
@@ -155,6 +181,33 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
             var r = T[c.dataIndex];
             return (c.raw >= 0 ? "+" : "") + c.raw + "% vs background · " + ROTULOS[r.kind]; } } } },
         scales: { x: { ticks: { callback: function (v) { return v + "%"; } } } } }
+    });
+
+    function media(kind) {
+      var g = T.filter(function (r) { return r.kind === kind; });
+      return g.reduce(function (s, r) { return s + r.enhancement_pct; }, 0) / g.length;
+    }
+    var mLane = media("lane"), mClean = media("clean"), mUrban = media("urban");
+    el("g-lane").textContent = "+" + mLane.toFixed(0) + "%";
+    el("g-clean").textContent = "+" + mClean.toFixed(0) + "%";
+    el("g-urban").textContent = "+" + mUrban.toFixed(0) + "%";
+    el("g-reading").textContent = "Reading: even with no city in sight, shipping lanes run " +
+      "+" + mLane.toFixed(0) + "% above the surrounding sea, and ports away from cities average " +
+      "+" + mClean.toFixed(0) + "%. Metropolitan averages (+" + mUrban.toFixed(0) + "%) are higher " +
+      "because ships, road traffic and industry overlap there, which is exactly why the three " +
+      "groups must be read separately.";
+
+    var Ts = T.slice().sort(function (a, b) { return b.no2_port_1e15 - a.no2_port_1e15; });
+    new Chart(el("c-levels"), {
+      type: "bar",
+      data: { labels: Ts.map(function (r) { return r.name; }),
+        datasets: [
+          { label: "Over the port/lane", data: Ts.map(function (r) { return r.no2_port_1e15; }),
+            backgroundColor: "#0fb5ba", borderRadius: 3 },
+          { label: "Regional background", data: Ts.map(function (r) { return r.no2_background_1e15; }),
+            backgroundColor: "#c2d1d9", borderRadius: 3 }] },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: "y",
+        plugins: { legend: { position: "bottom", labels: { boxWidth: 12 } } } }
     });
 
     el("t-res").innerHTML = T.map(function (r) {
