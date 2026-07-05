@@ -3,140 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>European Port Traffic Explorer — vessel arrivals by type &amp; size (Eurostat)</title>
-<meta name="description" content="Interactive explorer of quarterly vessel arrivals at 15 major European ports, by ship type and size class. Official Eurostat data, 2019 to present.">
-<meta property="og:title" content="European Port Traffic Explorer">
-<meta property="og:description" content="Quarterly vessel arrivals at 15 major EU ports by ship type and size — interactive, from official Eurostat data.">
+<title>Seen From Space — NO₂ over Europe's ports (Sentinel-5P, 2024)</title>
+<meta name="description" content="What the Sentinel-5P satellite sees over 15 European ports and 2 shipping lanes: tropospheric NO₂ enhancement versus the regional background, 2024 annual mean.">
+<meta property="og:title" content="Seen From Space — NO₂ over Europe's ports">
+<meta property="og:description" content="The Strait of Gibraltar shows +54% NO₂ over background: the shipping lane itself, visible from orbit. Satellite analysis of 15 ports.">
 <meta property="og:type" content="website">
 <style>
 :root{--navy:#0b2239;--navy2:#12304d;--teal:#0fb5ba;--teald:#0a8f93;--ink:#1c2b36;--muted:#5b6b78;
---line:#e2e8ee;--bg:#f5f8fa;--card:#fff;--warn:#e8a33d;--radius:12px;
+--line:#e2e8ee;--bg:#f5f8fa;--card:#fff;--warn:#e8a33d;--bad:#d6584f;--radius:12px;
 --shadow:0 1px 3px rgba(11,34,57,.08),0 8px 24px rgba(11,34,57,.06);
 --font:"Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif}
 *{box-sizing:border-box}body{margin:0;font-family:var(--font);color:var(--ink);background:var(--bg)}
 a{color:var(--teald);text-decoration:none}
-header{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:36px 20px 30px}
-.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+header{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:40px 20px 32px}
+.wrap{max-width:1060px;margin:0 auto;padding:0 20px}
 .eyebrow{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin:0 0 10px}
-h1{margin:0 0 10px;font-size:28px;line-height:1.25}
-header p.lead{margin:0;max-width:840px;color:#cfdae4;font-size:15px;line-height:1.6}
-main{padding:24px 0 10px}
-.controls{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-padding:16px 18px;box-shadow:var(--shadow);margin-bottom:20px}
-.controls h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
-.port-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.pchip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;
-font:600 13px var(--font);color:var(--muted);cursor:pointer;transition:all .15s}
-.pchip.on{background:var(--teal);border-color:var(--teal);color:#fff}
-#btn-all,#btn-reset{background:var(--navy);border-color:var(--navy);color:#fff}
-#btn-all:hover,#btn-reset:hover{background:var(--navy2)}
-.row2{display:flex;flex-wrap:wrap;gap:20px;align-items:center}
-select{font:14px var(--font);padding:7px 10px;border:1px solid var(--line);border-radius:8px;
-background:#fff;color:var(--ink)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.seg button{border:0;background:#fff;padding:7px 14px;font:600 13px var(--font);color:var(--muted);cursor:pointer}
-.seg button.on{background:var(--navy);color:#fff}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:0 0 20px}
-@media(max-width:860px){.grid{grid-template-columns:1fr}}
-.box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+h1{margin:0 0 12px;font-size:30px;line-height:1.25}
+header p.lead{margin:0;max-width:820px;color:#cfdae4;font-size:15px;line-height:1.6}
+main{padding:28px 0 10px}
+.stat-row{display:flex;flex-wrap:wrap;gap:14px;margin:22px 0}
+.chip{flex:1 1 150px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+padding:14px 16px;box-shadow:var(--shadow)}
+.chip .n{font-size:23px;font-weight:700;color:var(--navy)}
+.chip .l{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;
+box-shadow:var(--shadow);margin-bottom:22px}
 .box h3{margin:0 0 4px;font-size:16px;color:var(--navy)}
-.box .hint{margin:0 0 12px;font-size:13px;color:var(--muted)}
-.cwrap{position:relative;height:320px}
-.wide{grid-column:1/-1}.wide .cwrap{height:360px}
+.box .hint{margin:0 0 14px;font-size:13px;color:var(--muted)}
+.cwrap{position:relative;height:520px}
 table.data{width:100%;border-collapse:collapse;font-size:13.5px}
-table.data th{background:var(--navy);color:#fff;text-align:left;padding:8px 10px;font-weight:600;cursor:default}
+table.data th{background:var(--navy);color:#fff;text-align:left;padding:8px 10px;font-weight:600}
 table.data td{padding:7px 10px;border-bottom:1px solid var(--line)}
 table.data tr:nth-child(even){background:#f2f6f8}
 td.metric{font-weight:600;color:var(--navy)}
-.note{background:#fdf6e8;border-left:4px solid var(--warn);border-radius:6px;padding:14px 16px;
-font-size:13.5px;color:#5a4a28;line-height:1.55;margin:4px 0 24px}
-.note.blue{background:#eef6f7;border-left-color:var(--teal);color:#28414f}
-.hl-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:0 0 20px}
-@media(max-width:900px){.hl-row{grid-template-columns:1fr 1fr}}
-.hl{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-padding:14px 16px;box-shadow:var(--shadow)}
-.hl .tag{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:4px}
-.hl .big{font-size:21px;font-weight:700;color:var(--navy)}
-.hl .big.up{color:#2fa36b}.hl .big.down{color:#d6584f}
-.hl .who{font-size:13px;color:var(--muted);margin-top:2px}
-#map-svg .land{fill:#e3ecf1;stroke:#c2d1d9;stroke-width:.7}
-#map-svg circle{cursor:pointer;transition:opacity .15s}
-#map-svg circle.off{fill:#8ba0ac;fill-opacity:.35;stroke:#8ba0ac;stroke-width:1}
-#map-svg circle.on{fill:var(--teal);fill-opacity:.55;stroke:var(--teald);stroke-width:2}
-#map-svg text{font:600 11px var(--font);fill:var(--navy);pointer-events:none}
-footer{border-top:1px solid var(--line);margin-top:30px;padding:18px 0 30px;font-size:13px;color:var(--muted)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.kind{display:inline-block;padding:1px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.kind.clean{background:#e4f4ec;color:#1e7a4f}
+.kind.urban{background:#fdf0dc;color:#9a6a14}
+.kind.lane{background:#e2f2f7;color:#0d6f8f}
+.note{background:#eef6f7;border-left:4px solid var(--teal);border-radius:6px;padding:14px 16px;
+font-size:13.5px;color:#28414f;line-height:1.55;margin:8px 0 26px}
+.note.amber{background:#fdf6e8;border-left-color:var(--warn);color:#5a4a28}
+h2.section{font-size:20px;color:var(--navy);margin:30px 0 4px}
+p.sub{margin:0 0 16px;color:var(--muted);font-size:14px}
+footer{border-top:1px solid var(--line);margin-top:34px;padding:18px 0 30px;font-size:13px;color:var(--muted)}
 footer .wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
 </style>
 </head>
 <body>
 <header>
   <div class="wrap">
-    <p class="eyebrow">Eurostat official maritime statistics · 2019 → present</p>
-    <h1>European Port Traffic Explorer</h1>
-    <p class="lead">Interactive view of vessel arrivals at 15 major European ports, by ship type and
-    size class, from official Eurostat maritime statistics. Select ports, pick a ship type and
-    compare fleet profiles: who receives the container mega-ships, who lives off tankers, and how
-    traffic moved since 2019.</p>
-    <p style="margin:14px 0 0"><a href="map.html" style="display:inline-block;background:var(--teal);color:#fff;font-weight:600;padding:9px 18px;border-radius:8px">Open the map view →</a></p>
+    <p class="eyebrow">Copernicus Sentinel-5P · TROPOMI · 2024 annual mean</p>
+    <h1>Seen from space: NO₂ over Europe's ports</h1>
+    <p class="lead">The Sentinel-5P satellite maps nitrogen dioxide over the whole planet every
+    day. This analysis extracts its 2024 annual mean over 15 major European ports and 2 shipping
+    lanes, and compares each with its regional background: how much more NO₂ hangs over a port
+    than over the surrounding region?</p>
   </div>
 </header>
 
 <main>
 <div class="wrap">
 
-  <div class="hl-row" id="highlights"></div>
-
-  <div class="controls">
-    <h4>Ports</h4>
-    <div class="port-chips" style="margin-bottom:10px">
-      <button class="pchip" id="btn-all">All ports</button>
-      <button class="pchip" id="btn-reset">Reset</button>
-    </div>
-    <div class="port-chips" id="chips"></div>
-    <div class="row2">
-      <div><h4>Ship type</h4><select id="sel-type"></select></div>
-      <div><h4>Size metric</h4>
-        <span class="seg" id="seg-size">
-          <button data-m="nr" class="on">Arrivals</button><button data-m="gt">Gross tonnage</button>
-        </span>
-      </div>
-    </div>
+  <div class="stat-row">
+    <div class="chip" style="flex:1 1 240px"><div class="l" style="margin:0 0 6px">What is NO₂?</div>
+      <div style="font-size:13px;line-height:1.5;color:#28414f">A gas released when fuel burns, in ship engines, vehicles and industry. It stays close to its source, so it maps <strong>where</strong> combustion happens.</div></div>
+    <div class="chip" style="flex:1 1 240px"><div class="l" style="margin:0 0 6px">What does the satellite measure?</div>
+      <div style="font-size:13px;line-height:1.5;color:#28414f">Sentinel-5P scans the whole planet daily and measures the NO₂ column below it. We use the official 2024 annual mean, cell by cell (~2 km).</div></div>
+    <div class="chip" style="flex:1 1 240px"><div class="l" style="margin:0 0 6px">What does "enhancement" mean?</div>
+      <div style="font-size:13px;line-height:1.5;color:#28414f">How much more NO₂ sits over the port (±15 km) than over its own region (60–120 km ring). +50% = half again as much as the regional norm.</div></div>
   </div>
 
-  <div class="grid">
-    <div class="box wide">
-      <h3 id="ts-title">Annual arrivals</h3>
-      <p class="hint">Vessels arriving per calendar year (sum of the four quarters), selected ports. A year only appears once the port has reported all four quarters.</p>
-      <div class="cwrap"><canvas id="c-series"></canvas></div>
-    </div>
-    <div class="box wide">
-      <h3 id="rec-title">Change vs 2019</h3>
-      <p class="hint">Arrivals in the reference year compared with 2019, all ports with a complete 2019. Antwerp-Bruges and HAROPA report as merged entities only from 2022 and are shown against their first complete year (*).</p>
-      <div class="cwrap" style="height:300px"><canvas id="c-recovery"></canvas></div>
-    </div>
-    <div class="box">
-      <h3>Fleet mix by ship type</h3>
-      <p class="hint" id="mix-hint">Share of arrivals, per port</p>
-      <div class="cwrap"><canvas id="c-mix"></canvas></div>
-    </div>
-    <div class="box">
-      <h3 id="size-title">Size profile of calling vessels</h3>
-      <p class="hint" id="size-hint">Grouped GT classes</p>
-      <div class="cwrap"><canvas id="c-size"></canvas></div>
-    </div>
+  <div class="stat-row">
+    <div class="chip"><div class="n" id="s-targets">–</div><div class="l">Ports and lanes analysed</div></div>
+    <div class="chip"><div class="n" id="s-top">–</div><div class="l" id="s-top-l">Strongest enhancement</div></div>
+    <div class="chip"><div class="n" id="s-lane">–</div><div class="l">Strait of Gibraltar vs background</div></div>
+    <div class="chip"><div class="n" id="s-clean">–</div><div class="l" id="s-clean-l">Cleanest port signal</div></div>
   </div>
 
-  <div class="box" style="margin-bottom:20px">
-    <h3 id="rank-title">Ranking, reference year</h3>
-    <p class="hint">All 15 ports, regardless of selection. Click a row to toggle the port in the charts.</p>
+  <div class="note" id="headline-note"></div>
+
+  <div class="box">
+    <h3>NO₂ enhancement over the regional background, 2024</h3>
+    <p class="hint">Port pixel (±15 km) versus surrounding ring (60–120 km). Green: ports away
+    from big cities, where the signal is mostly maritime and port activity. Amber: ports inside
+    metropolitan areas, where city traffic and industry also contribute. Blue: open-sea shipping
+    lanes, no city at all.</p>
+    <div class="cwrap"><canvas id="c-enh"></canvas></div>
+  </div>
+
+  <div class="box">
+    <h3>What the groups tell us</h3>
+    <p class="hint">Average enhancement per setting, computed from the table below</p>
+    <div class="stat-row" style="margin:6px 0 4px">
+      <div class="chip"><div class="n" id="g-lane">–</div><div class="l">Shipping lanes (no city)</div></div>
+      <div class="chip"><div class="n" id="g-clean">–</div><div class="l">Ports away from cities</div></div>
+      <div class="chip"><div class="n" id="g-urban">–</div><div class="l">Metropolitan port regions</div></div>
+    </div>
+    <p class="hint" id="g-reading" style="margin:8px 0 0"></p>
+  </div>
+
+  <div class="box">
+    <h3>Absolute levels: port versus its own region</h3>
+    <p class="hint">Tropospheric NO₂ column, 10¹⁵ molecules/cm². The pair shows both the level and the local excess; Rotterdam has the highest absolute level, but sits in an already-polluted region.</p>
+    <div class="cwrap" style="height:560px"><canvas id="c-levels"></canvas></div>
+  </div>
+
+  <h2 class="section">Full results</h2>
+  <div class="box">
     <table class="data">
-      <thead><tr><th>Port</th><th>Arrivals</th><th>GT (thousand)</th><th>Avg GT per call</th>
-      <th>Container share</th><th>Tanker share</th><th>Dry bulk share</th></tr></thead>
-      <tbody id="t-rank"></tbody>
+      <thead><tr><th>Target</th><th>Setting</th>
+      <th class="num">NO₂ over target (10¹⁵ molec/cm²)</th>
+      <th class="num">Regional background</th><th class="num">Enhancement</th></tr></thead>
+      <tbody id="t-res"></tbody>
     </table>
   </div>
 
-  <div class="note blue" id="method"></div>
+  <h2 class="section">Method &amp; caveats</h2>
+  <div class="note amber" id="method-note"></div>
 
 </div>
 </main>
@@ -144,7 +128,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
 <footer>
   <div class="wrap">
     <span>Developed by <strong>Darliane Cunha, PhD</strong></span>
-    <span>Data source: © Eurostat, free reuse with attribution</span>
+    <span>Data source: Copernicus Sentinel-5P (ESA), S5P-PAL L3 · contains modified Copernicus data 2024</span>
   </div>
 </footer>
 
@@ -152,284 +136,90 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
 <script>
 (function () {
   "use strict";
-  var PALETTE = ["#0fb5ba", "#0b2239", "#e8a33d", "#d6584f", "#7b6cf6", "#2fa36b",
-                 "#8a5a44", "#5b6b78", "#c76b98", "#4a90d9", "#98a531", "#e07b39",
-                 "#3fbf9f", "#9b59b6", "#34495e"];
-  var MIX_TYPES = ["ODC_CNT", "LBK", "DBK", "ODC_GEN", "ODC_SPE", "ODC_PCRU"];
-  Chart.defaults.font.family = '"Segoe UI",Helvetica,Arial,sans-serif';
-  Chart.defaults.color = "#5b6b78";
-
-  var D, selected = ["NL_0NLRTM", "BE_0BE003", "DE_1DEHAM", "ES_2ESVLC", "EL_0GRPIR"];
-  var shipType = "TOTAL", sizeMetric = "nr";
-  var charts = {};
-
+  var CORES = { clean: "#2fa36b", urban: "#e8a33d", lane: "#1f8fb4" };
+  var ROTULOS = { clean: "Away from cities", urban: "Metropolitan", lane: "Shipping lane" };
   function el(id) { return document.getElementById(id); }
-  function fmt(n, d) { return n === null || n === undefined ? "–"
-    : Number(n).toLocaleString("en-GB", { maximumFractionDigits: d || 0 }); }
-  function pname(code) { var p = D.ports.find(function (x) { return x.code === code; });
-    return p ? p.name : code; }
-  function color(code) { return PALETTE[D.ports.findIndex(function (x) { return x.code === code; }) % PALETTE.length]; }
 
-  function mk(id, cfg) { if (charts[id]) charts[id].destroy();
-    charts[id] = new Chart(el(id), cfg); }
-
-  function buildControls() {
-    el("chips").innerHTML = D.ports.map(function (p) {
-      return '<button class="pchip' + (selected.indexOf(p.code) >= 0 ? " on" : "") +
-        '" data-c="' + p.code + '">' + p.name + '</button>';
-    }).join("");
-    var types = {};
-    D.ports.forEach(function (p) {
-      Object.keys(D.series[p.code] || {}).forEach(function (t) { types[t] = 1; });
-    });
-    el("sel-type").innerHTML = Object.keys(types).map(function (t) {
-      return '<option value="' + t + '"' + (t === shipType ? " selected" : "") + ">" +
-        (t === "TOTAL" ? "All ship types" : (D.vessel_labels[t] || t)) + "</option>";
-    }).join("");
-  }
-
-  function years() {
-    var ys = [];
-    D.quarters.forEach(function (q) {
-      var y = q.slice(0, 4);
-      if (ys.indexOf(y) < 0) ys.push(y);
-    });
-    return ys;
-  }
-
-  // Serie anual: soma dos 4 trimestres; ano incompleto para o porto vira null
-  function annualSeries(code, type) {
-    var row = (D.series[code] || {})[type];
-    var tot = (D.series[code] || {}).TOTAL;
-    if (!row) return [];
-    return years().map(function (y) {
-      var sum = 0, complete = 0;
-      D.quarters.forEach(function (q, i) {
-        if (q.indexOf(y) === 0) {
-          if (tot && tot[i] !== null && tot[i] !== undefined) complete++;
-          sum += row[i] || 0;
-        }
-      });
-      return complete === 4 ? sum : null;
-    });
-  }
-
-  function drawSeries() {
-    el("ts-title").textContent = "Annual arrivals — " +
-      (shipType === "TOTAL" ? "all ship types" : (D.vessel_labels[shipType] || shipType));
-    mk("c-series", { type: "line",
-      data: { labels: years(),
-        datasets: selected.map(function (c) {
-          return { label: pname(c), data: annualSeries(c, shipType),
-            borderColor: color(c), backgroundColor: color(c), pointRadius: 3,
-            borderWidth: 2, tension: .25, spanGaps: false };
-        }) },
-      options: { responsive: true, maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
-        plugins: { legend: { position: "bottom", labels: { boxWidth: 12, padding: 10 } } } } });
-  }
-
-  // Soma do ano-calendario de referencia (mesma convencao dos dados do Brasil)
-  function yearSum(code, type) {
-    var row = (D.series[code] || {})[type];
-    if (!row) return 0;
-    var s = 0;
-    D.quarters.forEach(function (q, i) {
-      if (q.indexOf(D.ref_year) === 0) s += row[i] || 0;
-    });
-    return s;
-  }
-
-  function drawMix() {
-    var others = [];
-    var datasets = MIX_TYPES.map(function (t, i) {
-      return { label: D.vessel_labels[t] || t,
-        data: selected.map(function (c) {
-          var tot = yearSum(c, "TOTAL");
-          return tot ? +(yearSum(c, t) / tot * 100).toFixed(1) : 0;
-        }),
-        backgroundColor: PALETTE[i], borderRadius: 3 };
-    });
-    datasets.push({ label: "Other", backgroundColor: "#c6d2da", borderRadius: 3,
-      data: selected.map(function (c, j) {
-        var s = 0; datasets.forEach(function (d) { s += d.data[j]; });
-        return +(Math.max(0, 100 - s)).toFixed(1);
-      }) });
-    mk("c-mix", { type: "bar",
-      data: { labels: selected.map(pname), datasets: datasets },
-      options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom", labels: { boxWidth: 11, padding: 8 } },
-          tooltip: { callbacks: { label: function (c) { return c.dataset.label + ": " + c.raw + "%"; } } } },
-        scales: { x: { stacked: true }, y: { stacked: true, max: 100,
-          ticks: { callback: function (v) { return v + "%"; } } } } } });
-  }
-
-  function drawSize() {
-    el("size-title").textContent = "Size profile — " +
-      (sizeMetric === "nr" ? "number of arrivals" : "gross tonnage (thousand GT)");
-    mk("c-size", { type: "bar",
-      data: { labels: D.size_groups,
-        datasets: selected.map(function (c) {
-          return { label: pname(c),
-            data: D.size_groups.map(function (g) { return (D.size_year[c][g] || {})[sizeMetric] || 0; }),
-            backgroundColor: color(c), borderRadius: 4 };
-        }) },
-      options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom", labels: { boxWidth: 12, padding: 10 } } } } });
-  }
-
-  function drawRank() {
-    var rows = D.ports.map(function (p) {
-      var t = D.totals_year[p.code] || {};
-      var tot = yearSum(p.code, "TOTAL");
-      function share(type) { return tot ? (yearSum(p.code, type) / tot * 100).toFixed(1) + "%" : "–"; }
-      return { code: p.code, name: p.name, nr: t.nr || 0, gt: t.gt || 0,
-        avg: t.nr ? t.gt * 1000 / t.nr : 0,
-        cnt: share("ODC_CNT"), lbk: share("LBK"), dbk: share("DBK") };
-    }).sort(function (a, b) { return b.nr - a.nr; });
-    el("t-rank").innerHTML = rows.map(function (r) {
-      var on = selected.indexOf(r.code) >= 0;
-      return '<tr data-c="' + r.code + '" style="cursor:pointer' +
-        (on ? ";outline:2px solid #0fb5ba33" : "") + '"><td class="metric">' +
-        (on ? "● " : "○ ") + r.name + "</td><td>" + fmt(r.nr) + "</td><td>" + fmt(r.gt) +
-        "</td><td>" + fmt(r.avg) + "</td><td>" + r.cnt + "</td><td>" + r.lbk +
-        "</td><td>" + r.dbk + "</td></tr>";
-    }).join("");
-  }
-
-  // Soma anual para um ano qualquer (null se o porto nao tem os 4 trimestres)
-  function yearTotal(code, year) {
-    var row = (D.series[code] || {}).TOTAL;
-    if (!row) return null;
-    var s = 0, n = 0;
-    D.quarters.forEach(function (q, i) {
-      if (q.indexOf(String(year)) === 0 && row[i] !== null && row[i] !== undefined) {
-        s += row[i]; n++;
-      }
-    });
-    return n === 4 ? s : null;
-  }
-
-  function baselineFor(code) {
-    if (yearTotal(code, 2019) !== null) return 2019;
-    for (var y = 2020; y < +D.ref_year; y++) {
-      if (yearTotal(code, y) !== null) return y;
+  fetch("data.json", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (D) {
+    var T = D.targets;
+    el("s-targets").textContent = T.length;
+    var top = T[0];
+    el("s-top").textContent = "+" + top.enhancement_pct + "%";
+    el("s-top-l").textContent = "Strongest enhancement: " + top.name;
+    var gib = T.find(function (r) { return r.name.indexOf("Gibraltar") >= 0; });
+    if (gib) el("s-lane").textContent = "+" + gib.enhancement_pct + "%";
+    var clean = T.filter(function (r) { return r.kind === "clean"; })[0];
+    if (clean) {
+      el("s-clean").textContent = "+" + clean.enhancement_pct + "%";
+      el("s-clean-l").textContent = "Largest signal away from cities: " + clean.name;
     }
-    return null;
-  }
 
-  function changePct(code) {
-    var base = baselineFor(code);
-    if (base === null) return null;
-    var a = yearTotal(code, base), b = yearTotal(code, +D.ref_year);
-    if (!a || b === null) return null;
-    return { pct: (b / a - 1) * 100, base: base };
-  }
+    el("headline-note").innerHTML = "<strong>Headline.</strong> Over the Strait of Gibraltar, " +
+      "with no city in sight, the satellite measures <strong>" + (gib ? "+" + gib.enhancement_pct : "+54") +
+      "% more NO₂</strong> than over the surrounding sea: the shipping lane itself, drawn in " +
+      "nitrogen dioxide. Among ports away from metropolitan areas, " + clean.name + " shows the " +
+      "strongest enhancement (+" + clean.enhancement_pct + "%), and metropolitan port regions " +
+      "like " + top.name + " reach +" + top.enhancement_pct + "%, where ships, city and industry overlap.";
 
-  function drawHighlights() {
-    var rows = D.ports.map(function (p) {
-      var ch = changePct(p.code);
-      var tot = yearSum(p.code, "TOTAL");
-      var t = D.totals_year[p.code] || {};
-      return { name: p.name, code: p.code,
-        pct: ch && ch.base === 2019 ? ch.pct : null,
-        cnt: tot ? yearSum(p.code, "ODC_CNT") / tot * 100 : 0,
-        nr: t.nr || 0 };
-    });
-    var with19 = rows.filter(function (r) { return r.pct !== null; });
-    var up = with19.slice().sort(function (a, b) { return b.pct - a.pct; })[0];
-    var down = with19.slice().sort(function (a, b) { return a.pct - b.pct; })[0];
-    var cnt = rows.slice().sort(function (a, b) { return b.cnt - a.cnt; })[0];
-    var busy = rows.slice().sort(function (a, b) { return b.nr - a.nr; })[0];
-    function card(tag, big, cls, who) {
-      return '<div class="hl"><div class="tag">' + tag + '</div><div class="big ' + cls +
-        '">' + big + '</div><div class="who">' + who + "</div></div>";
-    }
-    el("highlights").innerHTML =
-      card("Fastest growing vs 2019", (up.pct >= 0 ? "+" : "") + up.pct.toFixed(1) + "%", "up",
-           up.name + ", arrivals " + D.ref_year + " vs 2019") +
-      card("Steepest decline vs 2019", down.pct.toFixed(1) + "%", "down",
-           down.name + ", arrivals " + D.ref_year + " vs 2019") +
-      card("Most container-dependent", cnt.cnt.toFixed(1) + "%", "",
-           cnt.name + ", share of arrivals") +
-      card("Busiest port", fmt(busy.nr), "",
-           busy.name + ", arrivals in " + D.ref_year);
-  }
+    el("method-note").innerHTML = "<strong>Method.</strong> " + D.meta.source + ". " +
+      D.meta.method + ". Units: " + D.meta.units + ". <strong>Caveats:</strong> NO₂ has many " +
+      "sources; over metropolitan ports (amber) road traffic and industry contribute alongside " +
+      "ships, so enhancements there must not be read as ship-only. Negative values are possible " +
+      "when the surrounding region is more polluted than the port itself (e.g. Genova against " +
+      "the industrial Po basin). Ports away from cities and open-sea lanes give the cleanest " +
+      "maritime signal. NO₂ is not CO₂: it is a co-emitted combustion tracer, useful as an " +
+      "independent, space-based check on activity-based emission estimates.";
 
-  function drawRecovery() {
-    el("rec-title").textContent = "Change vs 2019 — arrivals in " + D.ref_year;
-    var rows = D.ports.map(function (p) {
-      var ch = changePct(p.code);
-      return ch === null ? null : { name: p.name + (ch.base !== 2019 ? " *" : ""),
-        pct: +ch.pct.toFixed(1) };
-    }).filter(Boolean).sort(function (a, b) { return b.pct - a.pct; });
-    mk("c-recovery", { type: "bar",
-      data: { labels: rows.map(function (r) { return r.name; }),
-        datasets: [{ data: rows.map(function (r) { return r.pct; }),
-          backgroundColor: rows.map(function (r) { return r.pct >= 0 ? "#2fa36b" : "#d6584f"; }),
-          borderRadius: 4 }] },
-      options: { responsive: true, maintainAspectRatio: false,
+    new Chart(el("c-enh"), {
+      type: "bar",
+      data: { labels: T.map(function (r) { return r.name; }),
+        datasets: [{ data: T.map(function (r) { return r.enhancement_pct; }),
+          backgroundColor: T.map(function (r) { return CORES[r.kind]; }), borderRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: "y",
         plugins: { legend: { display: false },
-          tooltip: { callbacks: { label: function (c) { return (c.raw >= 0 ? "+" : "") + c.raw + "%"; } } } },
-        scales: { y: { ticks: { callback: function (v) { return v + "%"; } } } } } });
-  }
-
-  function drawAll() { drawSeries(); drawMix(); drawSize(); drawRank(); drawHighlights(); drawRecovery(); }
-
-  var DEFAULT_SEL = selected.slice();
-  document.addEventListener("click", function (e) {
-    if (e.target.id === "btn-all") {
-      selected = D.ports.map(function (p) { return p.code; });
-      buildControls(); drawAll(); return;
-    }
-    if (e.target.id === "btn-reset") {
-      selected = DEFAULT_SEL.slice();
-      buildControls(); drawAll(); return;
-    }
-    var chip = e.target.closest(".pchip"), row = e.target.closest("tr[data-c]");
-    var bub = e.target.closest ? e.target.closest("circle[data-c]") : null;
-    var code = chip ? chip.getAttribute("data-c")
-      : (row ? row.getAttribute("data-c") : (bub ? bub.getAttribute("data-c") : null));
-    if (code) {
-      var i = selected.indexOf(code);
-      if (i >= 0) { if (selected.length > 1) selected.splice(i, 1); }
-      else selected.push(code);
-      buildControls(); drawAll();
-    }
-    var seg = e.target.closest("#seg-size button");
-    if (seg) {
-      sizeMetric = seg.getAttribute("data-m");
-      document.querySelectorAll("#seg-size button").forEach(function (b) {
-        b.classList.toggle("on", b === seg); });
-      drawSize();
-    }
-  });
-  document.addEventListener("change", function (e) {
-    if (e.target.id === "sel-type") { shipType = e.target.value; drawSeries(); }
-  });
-
-  fetch("data.json", { cache: "no-store" })
-    .then(function (r) { return r.json(); })
-    .then(function (data) {
-      D = data;
-      el("method").innerHTML = "<strong>Source &amp; method.</strong> " + D.meta.source +
-        ", retrieved from the free Eurostat dissemination API on " + D.meta.generated +
-        ". Arrivals are based on inward declarations at main ports (vessels ≥ 100 GT). " +
-        "Annual figures use the reference calendar year <strong>" + D.ref_year + "</strong>, the latest year with all four quarters reported by every port. Regenerate <code>data.json</code> any time " +
-        "with <code>python3 build_data.py</code>; new quarters are picked up automatically.";
-      var rt = document.getElementById("rank-title");
-      if (rt) rt.textContent = "Ranking, calendar year " + D.ref_year;
-      var mh = document.getElementById("mix-hint");
-      if (mh) mh.textContent = "Share of arrivals in " + D.ref_year + ", per port (latest complete year)";
-      var sh = document.getElementById("size-hint");
-      if (sh) sh.textContent = "Calendar year " + D.ref_year + " (latest complete year), grouped GT classes";
-      buildControls(); drawAll();
-    })
-    .catch(function () {
-      document.querySelector("main .wrap").insertAdjacentHTML("afterbegin",
-        "<p style='color:#d6584f'>data.json could not be loaded. Serve over HTTP " +
-        "(<code>python3 -m http.server</code>) or deploy to Vercel/GitHub Pages.</p>");
+          tooltip: { callbacks: { label: function (c) {
+            var r = T[c.dataIndex];
+            return (c.raw >= 0 ? "+" : "") + c.raw + "% vs background · " + ROTULOS[r.kind]; } } } },
+        scales: { x: { ticks: { callback: function (v) { return v + "%"; } } } } }
     });
+
+    function media(kind) {
+      var g = T.filter(function (r) { return r.kind === kind; });
+      return g.reduce(function (s, r) { return s + r.enhancement_pct; }, 0) / g.length;
+    }
+    var mLane = media("lane"), mClean = media("clean"), mUrban = media("urban");
+    el("g-lane").textContent = "+" + mLane.toFixed(0) + "%";
+    el("g-clean").textContent = "+" + mClean.toFixed(0) + "%";
+    el("g-urban").textContent = "+" + mUrban.toFixed(0) + "%";
+    el("g-reading").textContent = "Reading: even with no city in sight, shipping lanes run " +
+      "+" + mLane.toFixed(0) + "% above the surrounding sea, and ports away from cities average " +
+      "+" + mClean.toFixed(0) + "%. Metropolitan averages (+" + mUrban.toFixed(0) + "%) are higher " +
+      "because ships, road traffic and industry overlap there, which is exactly why the three " +
+      "groups must be read separately.";
+
+    var Ts = T.slice().sort(function (a, b) { return b.no2_port_1e15 - a.no2_port_1e15; });
+    new Chart(el("c-levels"), {
+      type: "bar",
+      data: { labels: Ts.map(function (r) { return r.name; }),
+        datasets: [
+          { label: "Over the port/lane", data: Ts.map(function (r) { return r.no2_port_1e15; }),
+            backgroundColor: "#0fb5ba", borderRadius: 3 },
+          { label: "Regional background", data: Ts.map(function (r) { return r.no2_background_1e15; }),
+            backgroundColor: "#c2d1d9", borderRadius: 3 }] },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: "y",
+        plugins: { legend: { position: "bottom", labels: { boxWidth: 12 } } } }
+    });
+
+    el("t-res").innerHTML = T.map(function (r) {
+      return "<tr><td class='metric'>" + r.name + "</td><td><span class='kind " + r.kind + "'>" +
+        ROTULOS[r.kind] + "</span></td><td class='num'>" + r.no2_port_1e15.toFixed(2) +
+        "</td><td class='num'>" + r.no2_background_1e15.toFixed(2) + "</td><td class='num'>" +
+        (r.enhancement_pct >= 0 ? "+" : "") + r.enhancement_pct + "%</td></tr>";
+    }).join("");
+  }).catch(function () {
+    document.querySelector("main .wrap").insertAdjacentHTML("afterbegin",
+      "<p style='color:#d6584f'>data.json could not be loaded. Serve over HTTP.</p>");
+  });
 })();
 </script>
 </body>
