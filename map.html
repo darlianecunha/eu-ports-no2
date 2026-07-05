@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Map view — European Port Traffic Explorer</title>
+<meta name="description" content="Animated map of vessel arrivals at 15 major European ports, year by year, with a live ranking. Official Eurostat data.">
+<style>
+:root{--navy:#0b2239;--navy2:#12304d;--teal:#0fb5ba;--teald:#0a8f93;--ink:#1c2b36;--muted:#5b6b78;
+--line:#e2e8ee;--bg:#f5f8fa;--card:#fff;--good:#2fa36b;--bad:#d6584f;--radius:12px;
+--shadow:0 1px 3px rgba(11,34,57,.08),0 8px 24px rgba(11,34,57,.06);
+--font:"Segoe UI","Helvetica Neue",Arial,system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;font-family:var(--font);color:var(--ink);background:var(--bg)}
+a{color:var(--teald);text-decoration:none}
+header{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:26px 20px 22px}
+.wrap{max-width:1160px;margin:0 auto;padding:0 20px}
+.eyebrow{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin:0 0 8px}
+h1{margin:0 0 6px;font-size:24px}
+header p.lead{margin:0;color:#cfdae4;font-size:14px}
+header a.back{color:#9fdfe2;font-size:13px}
+main{padding:20px 0 10px}
+.controls{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+padding:14px 18px;box-shadow:var(--shadow);margin-bottom:16px;display:flex;flex-wrap:wrap;
+gap:22px;align-items:center}
+.yearbox{display:flex;align-items:center;gap:14px;flex:1;min-width:300px}
+#year-slider{flex:1;accent-color:var(--teal)}
+#year-label{font:700 26px var(--font);color:var(--navy);min-width:72px;text-align:center}
+#play{border:0;background:var(--teal);color:#fff;font:600 14px var(--font);padding:9px 20px;
+border-radius:8px;cursor:pointer}
+#play:hover{background:var(--teald)}
+.total-chip{text-align:right}
+.total-chip .n{font:700 22px var(--font);color:var(--navy)}
+.total-chip .l{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.layout{display:grid;grid-template-columns:1fr 280px;gap:16px}
+@media(max-width:920px){.layout{grid-template-columns:1fr}}
+.mapbox{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+box-shadow:var(--shadow);padding:10px;position:relative}
+#map-svg{width:100%;height:auto;display:block}
+#map-svg .sea{fill:#e9f3f8}
+#map-svg .land{fill:#e2e9ed;stroke:#c2d1d9;stroke-width:.6}
+#map-svg circle.port{cursor:pointer;fill:#0fb5ba;fill-opacity:.6;stroke:#0a7c80;
+stroke-width:1.8;transition:r .6s ease}
+#map-svg circle.port:hover{fill-opacity:.8}
+#map-svg circle.nodata{fill:#c3ced5;stroke:none}
+#map-svg line.leader{stroke:#8fa5b0;stroke-width:.9}
+#map-svg text.pname{font:600 11.5px var(--font);fill:#1c2f3a;paint-order:stroke;stroke:#fff;
+stroke-width:3;stroke-linejoin:round;pointer-events:none}
+#map-svg text.pval{font:700 11px var(--font);fill:#0a7c80;paint-order:stroke;stroke:#fff;
+stroke-width:3;pointer-events:none}
+#map-svg text.pval.grey{fill:#93a5ae;font-weight:600}
+.rank{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+box-shadow:var(--shadow);padding:14px 14px 8px}
+.rank h3{margin:0 0 10px;font-size:14px;color:var(--navy)}
+.rank-row{display:flex;align-items:center;gap:8px;padding:4px 4px;border-radius:6px;
+font-size:12.5px;cursor:pointer;transition:transform .5s ease}
+.rank-row:hover{background:#f0f6f8}
+.rank-row .pos{width:18px;color:var(--muted);font-weight:600}
+.rank-row .nm{flex:1;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-row .val{font-weight:700}
+.rank-row .d{width:44px;text-align:right;font-size:11px;font-weight:700}
+.rank-row .d.up{color:var(--good)}.rank-row .d.down{color:var(--bad)}.rank-row .d.na{color:#b7c4cc}
+.rank-row .bar{position:absolute}
+.detail{position:absolute;top:18px;left:18px;width:240px;background:#fff;border:1px solid var(--line);
+border-radius:10px;box-shadow:var(--shadow);padding:14px 16px;font-size:13px;display:none;z-index:5}
+.detail h3{margin:0 0 6px;font-size:15px;color:var(--navy)}
+.detail table{width:100%;border-collapse:collapse}
+.detail td{padding:3px 0;border-bottom:1px solid #f0f4f6}
+.detail td:last-child{text-align:right;font-weight:600;color:var(--navy)}
+.detail .close{position:absolute;top:8px;right:11px;cursor:pointer;color:var(--muted);font-weight:700}
+.note{background:#eef6f7;border-left:4px solid var(--teal);border-radius:6px;padding:12px 15px;
+font-size:13px;color:#28414f;line-height:1.5;margin:16px 0 24px}
+footer{border-top:1px solid var(--line);margin-top:26px;padding:16px 0 28px;font-size:13px;color:var(--muted)}
+footer .wrap{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <p class="eyebrow">European Port Traffic Explorer · Map view</p>
+    <h1>Vessel arrivals across Europe, year by year</h1>
+    <p class="lead">Press play and watch the geography of port traffic move from 2019 to the
+    latest complete year. <a class="back" href="index.html">← Back to the charts</a></p>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+  <div class="controls">
+    <button id="play">▶ Play</button>
+    <div class="yearbox">
+      <input type="range" id="year-slider" min="0" max="0" step="1" value="0">
+      <span id="year-label">–</span>
+    </div>
+    <div class="total-chip">
+      <div class="n" id="total-n">–</div>
+      <div class="l" id="total-l">arrivals, 15 ports</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="mapbox">
+      <svg id="map-svg"></svg>
+      <div class="detail" id="detail"><span class="close" id="detail-close">×</span><div id="detail-body"></div></div>
+    </div>
+    <div class="rank">
+      <h3 id="rank-title">Ranking</h3>
+      <div id="rank-body"></div>
+    </div>
+  </div>
+
+  <div class="note" id="map-note"></div>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Developed by <strong>Darliane Cunha, PhD</strong></span>
+    <span>Data source: © Eurostat · Basemap: Natural Earth (public domain)</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var D, MAP, years = [], yi = 0, timer = null, detailPort = null, maxNr = 1;
+
+  // Ancora fixa do rotulo por porto (calibrada nas coordenadas do basemap):
+  // e/w/n/s e diagonais; rotulo sempre FORA da bolha, numero junto do nome
+  var LBL = {
+    NL_0NLRTM: "ne",  BE_0BE003: "w",   DE_1DEHAM: "e",  DE_1DEBRV: "nw",
+    ES_2ESVLC: "w",   ES_2ESALG: "s",   ES_2ESBCN: "e",  EL_0GRPIR: "n",
+    FR_2FRMRS: "sw",  FR_1FR001: "s",   IT_0ITGOA: "n",  IT_0ITGIT: "e",
+    PT_0PTSIE: "n",   RO_0ROCND: "w",   PL_0PLGDN: "n"
+  };
+  var SHORT = { FR_1FR001: "HAROPA", BE_0BE003: "Antwerp-Bruges" };
+
+  // posicao do bloco de rotulo (2 linhas) relativa a bolha
+  function labelPos(dir, cx, cy, r) {
+    var g = 9, d = (r + g) * 0.72;
+    switch (dir) {
+      case "e":  return { x: cx + r + g, y: cy - 2, a: "start" };
+      case "w":  return { x: cx - r - g, y: cy - 2, a: "end" };
+      case "n":  return { x: cx, y: cy - r - g - 12, a: "middle" };
+      case "s":  return { x: cx, y: cy + r + g + 9, a: "middle" };
+      case "ne": return { x: cx + d + 4, y: cy - d - 8, a: "start" };
+      case "nw": return { x: cx - d - 4, y: cy - d - 8, a: "end" };
+      case "se": return { x: cx + d + 4, y: cy + d + 8, a: "start" };
+      default:   return { x: cx - d - 4, y: cy + d + 8, a: "end" };   // sw
+    }
+  }
+
+  function el(id) { return document.getElementById(id); }
+  function fmt(n) { return n === null || n === undefined ? "–"
+    : Number(n).toLocaleString("en-GB", { maximumFractionDigits: 0 }); }
+  function pname(c) { var p = D.ports.find(function (x) { return x.code === c; }); return p ? p.name : c; }
+
+  // soma anual de chegadas (null se o porto nao tem os 4 trimestres)
+  function arrivals(code, year) {
+    var row = (D.series[code] || {}).TOTAL;
+    if (!row) return null;
+    var s = 0, n = 0;
+    D.quarters.forEach(function (q, i) {
+      if (q.indexOf(String(year)) === 0 && row[i] !== null && row[i] !== undefined) { s += row[i]; n++; }
+    });
+    return n === 4 ? s : null;
+  }
+
+  function draw() {
+    var year = years[yi];
+    el("year-label").textContent = year;
+
+    // total do ano (portos com dado)
+    var total = 0, com = 0;
+    D.ports.forEach(function (p) {
+      var a = arrivals(p.code, year);
+      if (a !== null) { total += a; com++; }
+    });
+    el("total-n").textContent = fmt(total);
+    el("total-l").textContent = "arrivals in " + year + ", " + com + " ports";
+
+    // ----- mapa -----
+    var svg = el("map-svg");
+    var vb = MAP.viewBox.split(" ");
+    svg.setAttribute("viewBox", MAP.viewBox);
+    var out = '<rect class="sea" width="' + vb[2] + '" height="' + vb[3] + '"/>';
+    out += MAP.paths.map(function (d) { return '<path class="land" d="' + d + '"/>'; }).join("");
+    var labels = "";
+    D.ports.forEach(function (p) {
+      var xy = MAP.ports_xy[p.code];
+      if (!xy) return;
+      var cx = xy[0], cy = xy[1];
+      var a = arrivals(p.code, year);
+      var nm = SHORT[p.code] || p.name;
+      var r = a === null ? 3.5 : 5 + 25 * Math.sqrt(a / maxNr);
+      var prev = yi > 0 ? arrivals(p.code, years[yi - 1]) : null;
+      var dtxt = (a !== null && prev) ? ((a / prev - 1) * 100 >= 0 ? "+" : "") +
+        ((a / prev - 1) * 100).toFixed(1) + "% vs " + years[yi - 1] : "";
+      var tip = "<title>" + pname(p.code) + " " + year + " — " +
+        (a === null ? "no complete data" : fmt(a) + " arrivals" + (dtxt ? " (" + dtxt + ")" : "")) +
+        "</title>";
+      out += '<circle class="' + (a === null ? "nodata" : "port") + '" data-c="' + p.code +
+        '" cx="' + cx + '" cy="' + cy + '" r="' + r.toFixed(1) + '">' + tip + "</circle>";
+
+      // rotulo de duas linhas (nome + numero), sempre fora da bolha
+      var L = labelPos(LBL[p.code] || "e", cx, cy, r);
+      var diag = "ne nw se sw".indexOf(LBL[p.code]) >= 0;
+      if (diag) {
+        var vx = L.a === "start" ? -3 : 3, vy = L.y < cy ? 10 : -12;
+        out += '<line class="leader" x1="' + (L.x + vx) + '" y1="' + (L.y + (L.y < cy ? 3 : -9)) +
+          '" x2="' + (cx + (L.x > cx ? r * 0.72 : -r * 0.72)) +
+          '" y2="' + (cy + (L.y < cy ? -r * 0.72 : r * 0.72)) + '"/>';
+      }
+      labels += '<text class="pname" x="' + L.x + '" y="' + L.y + '" text-anchor="' + L.a + '">' +
+        nm + "</text>";
+      labels += '<text class="pval' + (a === null ? " grey" : "") + '" x="' + L.x + '" y="' +
+        (L.y + 12.5) + '" text-anchor="' + L.a + '">' + (a === null ? "no data" : fmt(a)) + "</text>";
+    });
+    svg.innerHTML = out + labels;
+
+    // ----- ranking lateral -----
+    el("rank-title").textContent = "Arrivals in " + year;
+    var rows = D.ports.map(function (p) {
+      var a = arrivals(p.code, year);
+      var prev = yi > 0 ? arrivals(p.code, years[yi - 1]) : null;
+      return { code: p.code, name: p.name, a: a,
+        d: (a !== null && prev) ? (a / prev - 1) * 100 : null };
+    }).sort(function (x, y) { return (y.a || -1) - (x.a || -1); });
+    var maxA = rows[0].a || 1;
+    el("rank-body").innerHTML = rows.map(function (r, i) {
+      var dcls = r.d === null ? "na" : (r.d >= 0 ? "up" : "down");
+      var dtx = r.d === null ? "·" : (r.d >= 0 ? "▲" : "▼") + Math.abs(r.d).toFixed(1) + "%";
+      var w = r.a ? (r.a / maxA * 100).toFixed(0) : 0;
+      return '<div class="rank-row" data-c="' + r.code + '" style="background:linear-gradient(90deg,#e6f7f8 ' +
+        w + '%,transparent ' + w + '%)"><span class="pos">' + (i + 1) + '</span><span class="nm">' +
+        r.name + '</span><span class="val">' + (r.a === null ? "–" : fmt(r.a)) +
+        '</span><span class="d ' + dcls + '">' + dtx + "</span></div>";
+    }).join("");
+
+    if (detailPort) drawDetail(detailPort);
+  }
+
+  function drawDetail(code) {
+    detailPort = code;
+    var year = years[yi];
+    var a = arrivals(code, year);
+    var base = arrivals(code, 2019);
+    var prev = yi > 0 ? arrivals(code, years[yi - 1]) : null;
+    var rows = [
+      ["Arrivals " + year, a === null ? "–" : fmt(a)],
+      ["vs previous year", (a !== null && prev) ? ((a / prev - 1) * 100 >= 0 ? "+" : "") + ((a / prev - 1) * 100).toFixed(1) + "%" : "–"],
+      ["vs 2019", (a !== null && base) ? ((a / base - 1) * 100 >= 0 ? "+" : "") + ((a / base - 1) * 100).toFixed(1) + "%" : "–"],
+    ];
+    el("detail-body").innerHTML = "<h3>" + pname(code) + "</h3><table>" +
+      rows.map(function (r) { return "<tr><td>" + r[0] + "</td><td>" + r[1] + "</td></tr>"; }).join("") +
+      "</table>";
+    el("detail").style.display = "block";
+  }
+
+  function step() {
+    yi = (yi + 1) % years.length;
+    el("year-slider").value = yi;
+    draw();
+    if (yi === years.length - 1) stop();
+  }
+  function play() {
+    if (timer) { stop(); return; }
+    if (yi === years.length - 1) { yi = 0; el("year-slider").value = 0; draw(); }
+    el("play").textContent = "⏸ Pause";
+    timer = setInterval(step, 1200);
+  }
+  function stop() {
+    clearInterval(timer); timer = null;
+    el("play").textContent = "▶ Play";
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.id === "play") { play(); return; }
+    if (e.target.id === "detail-close") { detailPort = null; el("detail").style.display = "none"; draw(); return; }
+    var t = e.target.closest ? (e.target.closest("circle[data-c]") || e.target.closest(".rank-row")) : null;
+    if (t) drawDetail(t.getAttribute("data-c"));
+  });
+  document.addEventListener("input", function (e) {
+    if (e.target.id === "year-slider") { stop(); yi = +e.target.value; draw(); }
+  });
+
+  Promise.all([
+    fetch("data.json", { cache: "no-store" }).then(function (r) { return r.json(); }),
+    fetch("europe_map.json", { cache: "no-store" }).then(function (r) { return r.json(); })
+  ]).then(function (both) {
+    D = both[0]; MAP = both[1];
+    // anos ate o ano de referencia (ultimo ano-calendario completo em todos os portos)
+    var ys = [];
+    D.quarters.forEach(function (q) {
+      var y = +q.slice(0, 4);
+      if (y <= +D.ref_year && ys.indexOf(y) < 0 &&
+          D.ports.some(function (p) { return arrivals(p.code, y) !== null; })) {
+        ys.push(y);
+      }
+    });
+    years = ys;
+    // escala fixa das bolhas: maior valor de todos os anos
+    D.ports.forEach(function (p) {
+      years.forEach(function (y) {
+        var a = arrivals(p.code, y);
+        if (a && a > maxNr) maxNr = a;
+      });
+    });
+    yi = years.length - 1;
+    var sl = el("year-slider");
+    sl.max = years.length - 1; sl.value = yi;
+    el("map-note").innerHTML = "<strong>How to read it.</strong> Bubble size is the number of " +
+      "vessel arrivals in the year, on the same scale across all years, so pressing play shows " +
+      "real movement. The side ranking reorders live, with the change versus the previous year. " +
+      "Click a bubble or a ranking row for the port's card. Grey dots mean the port has no " +
+      "complete calendar year yet (Antwerp-Bruges and HAROPA report as merged entities only " +
+      "from 2022). Data: Eurostat, closed calendar years (currently up to " + D.ref_year + ").";
+    draw();
+  }).catch(function () {
+    document.querySelector("main .wrap").insertAdjacentHTML("afterbegin",
+      "<p style='color:#d6584f'>data.json / europe_map.json could not be loaded. Serve over HTTP.</p>");
+  });
+})();
+</script>
+</body>
+</html>
