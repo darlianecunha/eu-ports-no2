@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this software or its data, please cite it as below."
+type: software
+title: "Seen from space: NO2 over Europe's ports, Sentinel-5P 2024"
+authors:
+  - family-names: "Cunha"
+    given-names: "Darliane Ribeiro"
+    orcid: "https://orcid.org/0000-0003-2548-1237"
+    affiliation: "Federal University of Maranhão (UFMA)"
+version: "1.0.0"
+date-released: "2026-07-05"
+url: "https://eu-ports-no2.vercel.app/"
+repository-code: "https://github.com/darlianecunha/eu-ports-no2"
+license: CC-BY-4.0
+keywords:
+  - NO2
+  - Sentinel-5P
+  - TROPOMI
+  - Copernicus
+  - ports
+  - shipping emissions
+  - remote sensing
